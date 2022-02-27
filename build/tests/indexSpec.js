@@ -15,31 +15,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = __importDefault(require("../index"));
 const supertest_1 = __importDefault(require("supertest"));
 const path_1 = __importDefault(require("path"));
-const sharp_1 = __importDefault(require("sharp"));
+const resize_1 = __importDefault(require("./../controllers/resize"));
 const request = (0, supertest_1.default)(index_1.default);
-describe("Test endpoint responses", () => {
-    it("gets the api endpoint", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield request.get("/api");
+describe('Test endpoint responses', () => {
+    it('gets the api endpoint', () => __awaiter(void 0, void 0, void 0, function* () {
+        const response = yield request.get('/api');
         expect(response.status).toBe(200);
     }));
-    it("gets the /api/images", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield request.get("/api/images");
+    it('gets the /api/images', () => __awaiter(void 0, void 0, void 0, function* () {
+        const response = yield request.get('/api/images');
         expect(response.status).toBe(404);
     }));
-    it("gets the /api/images?filename=fjord&width=300&height=200", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield request.get("/api/images?filename=fjord&width=300&height=200");
+    it('gets the /api/images?filename=icelandwaterfall&width=100&height=200', () => __awaiter(void 0, void 0, void 0, function* () {
+        const response = yield request.get('/api/images?filename=icelandwaterfall&width=100&height=200');
         expect(response.status).toBe(200);
     }));
-    it("gets the resized image according to width and height provided", () => __awaiter(void 0, void 0, void 0, function* () {
-        const filePath = path_1.default.join(__dirname + "../../../images/starter/fjord.jpg");
+    it('gets the resized image according to width and height provided', () => __awaiter(void 0, void 0, void 0, function* () {
+        const filePath = path_1.default.join(__dirname + '../../../images/starter/icelandwaterfall.jpg');
         console.log(filePath);
-        const fileName = "fjord" + 250 + 250 + ".jpg";
-        const resizedFiledir = path_1.default.join(__dirname + "../../../images/thumb/");
+        const fileName = 'icelandwaterfall' + '_' + 100 + '_' + 200 + '.jpg';
+        const resizedFiledir = path_1.default.join(__dirname + '../../../images/thumb/');
         const resizedFilePath = resizedFiledir + fileName;
-        yield (0, sharp_1.default)(filePath)
-            .resize(250, 200)
-            .toFormat("jpeg")
-            .toFile(resizedFilePath);
+        yield (0, resize_1.default)(filePath, 100, 200, resizedFilePath);
         expect(resizedFilePath).toBeTruthy();
     }));
 });

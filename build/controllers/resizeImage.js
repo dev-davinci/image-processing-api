@@ -14,60 +14,63 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const sharp_1 = __importDefault(require("sharp"));
+const resize_1 = __importDefault(require("./resize"));
 const resizeImage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const fileName = req.query.filename;
     const width = parseInt(req.query.width);
     const height = parseInt(req.query.height);
-    if (!fileName || !width || !height) {
-        res
-            .status(404)
-            .send("You haven't entered your parameters yet. please check and try again.");
+    if (!fileName || width === undefined || height === undefined) {
+        res.status(404).send("You haven't entered your parameters yet. please check and try again.");
         return;
     }
-    const filePath = path_1.default.join(__dirname + "../../../images/starter/" + fileName);
+    let fileFormat = req.query.format;
+    let fileExtension = '.' + fileFormat;
+    if (fileFormat === undefined) {
+        fileFormat = 'jpeg';
+        fileExtension = '.jpg';
+    }
+    const filePath = path_1.default.join(__dirname + '../../../images/starter/' + fileName + fileExtension);
     if (isNaN(width) || isNaN(height)) {
-        res.send(`Error: Please enter valid number for width and height`);
+        res.send(`Please enter valid number for width and height`);
         return;
     }
-    const resizedFileName = fileName + "_" + width + "_" + height;
-    const resizedFiledir = path_1.default.join(__dirname + "../../../images/thumb/");
+    const resizedFileName = fileName + '_' + width + '_' + height + fileExtension;
+    const resizedFiledir = path_1.default.join(__dirname + '../../../images/thumb/');
     const resizedFilePath = resizedFiledir + resizedFileName;
     try {
         try {
             fs_1.default.accessSync(filePath, fs_1.default.constants.F_OK);
         }
-        catch (error) {
-            console.log(error);
-            res.send("The image does not exist in this directory");
+        catch (err) {
+            res.send(`The image does not exist in this directory`);
             return;
         }
         try {
             fs_1.default.accessSync(resizedFilePath, fs_1.default.constants.F_OK);
             res.sendFile(resizedFilePath);
-        }
-        catch (error) { }
-        try {
-            fs_1.default.accessSync(resizedFiledir, fs_1.default.constants.F_OK);
             return;
         }
-        catch (error) {
+        catch (err) {
+            console.log(`No resized file found`);
+        }
+        try {
+            fs_1.default.accessSync(resizedFiledir, fs_1.default.constants.F_OK);
+        }
+        catch (err) {
             try {
                 fs_1.default.mkdirSync(resizedFiledir);
             }
             catch (err) {
-                res.send("");
+                res.send(`Error in creating directory`);
                 return;
             }
         }
-        yield (0, sharp_1.default)(filePath)
-            .resize(width, height)
-            .toFormat("jpeg")
-            .toFile(resizedFilePath);
+        yield (0, resize_1.default)(filePath, width, height, resizedFilePath);
         res.sendFile(resizedFilePath);
+        return;
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        console.log(err);
     }
 });
 exports.default = resizeImage;
